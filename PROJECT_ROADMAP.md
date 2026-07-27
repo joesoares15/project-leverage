@@ -10,6 +10,7 @@ This is a prioritization guide, not a promise that every idea will be built imme
 - Cross-league manager identity matching
 - Historical rookie/startup draft profiles
 - PL-001 AnyRBOnA53 weekly utility
+- League-first Portfolio Engine
 
 ## Near-term
 
@@ -38,6 +39,12 @@ This is a prioritization guide, not a promise that every idea will be built imme
 - Portfolio exposure across all leagues
 - Research library with versioned methods and confidence levels
 - Weekly GM report
+
+## Parking lot
+
+- Asset timeline visualization
+- Pick waterfall visualization
+- Trade-flexibility score
 
 ## Guardrails
 
