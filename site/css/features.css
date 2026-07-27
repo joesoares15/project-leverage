@@ -1,0 +1,31 @@
+.position { margin-bottom: 14px; }
+.position h4 { margin: 0 0 7px; font-size: 12px; color: var(--muted); letter-spacing: .08em; }
+.player { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.player span:last-child { font-weight: 700; }
+.trade { padding: 12px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 12px; }
+.trade strong { display: block; margin-bottom: 4px; }
+.trade p { margin: 5px 0; font-size: 13px; color: var(--muted); }
+.manager-card { padding: 14px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 14px; }
+.manager-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.manager-head h4 { margin: 0; }
+.manager-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.manager-stat { padding: 9px; background: #f9fafb; border-radius: 10px; }
+.manager-stat b { display: block; font-size: 18px; }
+.manager-stat span { font-size: 11px; color: var(--muted); }
+.tendency { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.lab-controls { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 12px; align-items: end; }
+.lab-controls label { font-size: 12px; font-weight: 700; color: var(--muted); }
+.lab-button { width: auto; margin: 0; }
+.lab-status { margin: 16px 0; padding: 12px; color: var(--muted); background: #f2f4f7; border-radius: 10px; }
+.inset { margin-top: 14px; background: #f9fafb; box-shadow: none; }
+.method { margin-top: 10px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+details { margin-top: 12px; }
+summary { font-weight: 700; cursor: pointer; }
+
+@media (max-width: 900px) {
+  .lab-controls { grid-template-columns: 1fr 1fr; }
+  .lab-button { grid-column: 1 / -1; width: 100%; }
+}
+@media (max-width: 760px) {
+  .manager-grid { grid-template-columns: 1fr 1fr; }
+}

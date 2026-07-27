@@ -1,1 +1,53 @@
-const CACHE="project-leverage-v1";const ASSETS=["./","index.html","styles.css","app.js","manifest.webmanifest"];self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request)))})
+const CACHE_NAME = "project-leverage-v2";
+const STATIC_ASSETS = [
+  "./",
+  "index.html",
+  "manifest.webmanifest",
+  "css/base.css",
+  "css/components.css",
+  "css/features.css",
+  "js/app.js",
+  "js/config.js",
+  "js/state.js",
+  "js/utils.js",
+  "js/lab.js",
+  "js/services/http.js",
+  "js/services/market-values.js",
+  "js/services/sleeper.js",
+  "js/domain/players.js",
+  "js/domain/leagues.js",
+  "js/domain/managers.js",
+  "js/domain/portfolio.js",
+  "js/ui/dashboard.js",
+  "js/ui/managers.js",
+  "js/ui/portfolio.js",
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
+      ),
+  );
+  self.clients.claim();
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
+  );
+});

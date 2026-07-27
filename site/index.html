@@ -6,7 +6,9 @@
   <meta name="theme-color" content="#101828">
   <title>Project Leverage</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/features.css">
 </head>
 <body>
 <header>
@@ -28,13 +30,6 @@
   </section>
 
   <section class="toolbar">
-    <label>Strategy
-      <select id="strategy">
-        <option value="aggressive" selected>Aggressive championship hunting</option>
-        <option value="balanced">Balanced</option>
-        <option value="value">Long-term value</option>
-      </select>
-    </label>
     <label>League
       <select id="leagueFilter"><option value="all">All leagues</option></select>
     </label>
@@ -51,6 +46,19 @@
         <thead><tr><th>League</th><th>Status</th><th>Rank</th><th>Core</th><th>Depth</th><th>Picks</th><th>Action</th></tr></thead>
         <tbody id="summaryBody"><tr><td colspan="7" class="empty">Press “Refresh everything” to begin.</td></tr></tbody>
       </table>
+    </div>
+  </section>
+
+
+  <section id="portfolioSection" class="hidden">
+    <div class="section-heading">
+      <div><div class="eyebrow">PORTFOLIO</div><h2>Cross-league exposure</h2></div>
+      <span class="hint">Current rosters across all imported leagues</span>
+    </div>
+    <div id="portfolioMetrics" class="cards"></div>
+    <div class="panel">
+      <h3>Most-rostered players</h3>
+      <div id="playerExposure"></div>
     </div>
   </section>
 
@@ -124,6 +132,6 @@
   </section>
 </main>
 
-<script src="app.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>

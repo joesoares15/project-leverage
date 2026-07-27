@@ -53,10 +53,17 @@ The website reads a bundled `site/data/anyrbona53.json` generated before deploym
 ## Repository layout
 
 ```text
-site/                         GitHub Pages website
-scripts/build_anyrb_data.py   PL-001 data builder
-scripts/validate_anyrb_output.py
+site/index.html               GitHub Pages entry point
+site/css/                     base, component, and feature styling
+site/js/services/             external API access
+site/js/domain/               league, player, portfolio, and manager logic
+site/js/ui/                   DOM rendering
+site/js/app.js                application orchestration
+site/js/lab.js                PL-001 research UI
+site/data/                    bundled research output
+scripts/                      PL-001 data build and validation
 notebooks/                    Colab fallback/debug path
+docs/ARCHITECTURE.md          module boundaries and data flow
 .github/workflows/            tests, data build, and Pages deployment
 tests/                        offline unit tests
 ```
