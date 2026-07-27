@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101828">
+  <title>Project Leverage</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div>
+    <div class="eyebrow">JOESOARES · DYNASTY RESEARCH</div>
+    <h1>Project Leverage</h1>
+    <p>League-specific dynasty analysis, manager tendencies, and transparent research into unconventional roster construction.</p>
+  </div>
+  <button id="refreshBtn" class="primary">↻ Refresh everything</button>
+</header>
+
+<main>
+  <section id="statusCard" class="status-card">
+    <div>
+      <strong id="statusText">Ready to import your seven leagues.</strong>
+      <span id="lastUpdated"></span>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+  </section>
+
+  <section class="toolbar">
+    <label>Strategy
+      <select id="strategy">
+        <option value="aggressive" selected>Aggressive championship hunting</option>
+        <option value="balanced">Balanced</option>
+        <option value="value">Long-term value</option>
+      </select>
+    </label>
+    <label>League
+      <select id="leagueFilter"><option value="all">All leagues</option></select>
+    </label>
+    <button id="exportBtn" class="secondary">Export data</button>
+  </section>
+
+  <section>
+    <div class="section-heading">
+      <div><div class="eyebrow">PORTFOLIO VIEW</div><h2>Your teams</h2></div>
+      <span class="hint">Tap a row for details</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>League</th><th>Status</th><th>Rank</th><th>Core</th><th>Depth</th><th>Picks</th><th>Action</th></tr></thead>
+        <tbody id="summaryBody"><tr><td colspan="7" class="empty">Press “Refresh everything” to begin.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="detailSection" class="hidden">
+    <div class="section-heading">
+      <div><div class="eyebrow">LEAGUE ROOM</div><h2 id="detailTitle"></h2></div>
+    </div>
+    <div id="leagueCards" class="cards"></div>
+    <div class="two-col">
+      <div class="panel">
+        <h3>Your roster</h3>
+        <div id="myRoster"></div>
+      </div>
+      <div class="panel">
+        <h3>Recommended trade offers</h3>
+        <div id="tradeIdeas"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>League power rankings</h3>
+      <div id="powerRankings"></div>
+    </div>
+  </section>
+
+
+  <section id="labSection">
+    <div class="section-heading">
+      <div><div class="eyebrow">DYNASTY LAB · RESEARCH #1</div><h2>AnyRBOnA53 weekly utility</h2></div>
+      <span class="hint">Historical weekly outcomes, not season-end anecdotes</span>
+    </div>
+    <div class="panel">
+      <div class="lab-controls">
+        <label>Seasons
+          <select id="labSeasons"><option value="2019-2024" selected>2019–2024</option><option value="2021-2024">2021–2024</option><option value="2023-2024">2023–2024</option></select>
+        </label>
+        <label>Scoring
+          <select id="labScoring"><option value="half" selected>Half PPR</option><option value="ppr">Full PPR</option><option value="standard">Standard</option></select>
+        </label>
+        <label>RB cohort
+          <select id="labRbRange"><option value="35-60" selected>Prior-year RB35–60</option><option value="40-60">Prior-year RB40–60</option><option value="40-72">Prior-year RB40–72</option></select>
+        </label>
+        <label>WR comparison
+          <select id="labWrRange"><option value="60-90" selected>Prior-year WR60–90</option><option value="50-80">Prior-year WR50–80</option><option value="70-100">Prior-year WR70–100</option></select>
+        </label>
+        <button id="runLabBtn" class="primary lab-button">Run study</button>
+      </div>
+      <div id="labStatus" class="lab-status">The study has not been run yet.</div>
+      <div id="labResults" class="hidden">
+        <div id="labMetrics" class="cards"></div>
+        <div class="two-col">
+          <div><h3>Usable-week outcomes</h3><div id="labOutcomeTable"></div></div>
+          <div><h3>Pre-kickoff opportunity signals</h3><div id="labSignalTable"></div></div>
+        </div>
+        <div class="panel inset"><h3>Injury-driven examples</h3><div id="labExamples"></div></div>
+        <div class="panel inset"><h3>Interpretation</h3><div id="labInterpretation"></div></div>
+        <details><summary>Method and limitations</summary><div id="labMethod" class="method"></div></details>
+      </div>
+    </div>
+  </section>
+
+  <section id="managerSection" class="hidden">
+    <div class="section-heading"><div><div class="eyebrow">LEAGUE EXPLOIT</div><h2>Manager profiles</h2></div><span class="hint">Draft tendencies across shared leagues</span></div>
+    <div class="panel">
+      <div id="managerProfiles"></div>
+    </div>
+  </section>
+
+  <section class="panel notes">
+    <h3>What this release does—and does not claim</h3>
+    <p>DynastyProcess values are treated as market prices, not intrinsic truth. Team rankings and trade ideas remain provisional while the roster-architecture model is rebuilt around lineup leverage, minimum viable coverage, and bench optionality. PL-001 is descriptive research; it does not yet claim that Opportunity Delta is a validated forecast.</p>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
