@@ -3,7 +3,7 @@ const USERNAME="joesoares";
 const LEAGUE_IDS=["1315874422917181441","1312098881235853312","1317240083270598656","1312092252037718016","1312061222975176704","1312098646744924160","1377108259638358016"];
 const SLEEPER="https://api.sleeper.app/v1";
 const VALUES="https://raw.githubusercontent.com/dynastyprocess/data/master/files/values.csv";
-let state={leagues:[],players:{},values:new Map(),valueDate:null,managerProfiles:[],draftHistory:[]};
+let state={leagues:[],players:{},values:new Map(),valueDate:null,managerProfiles:[],draftHistory:[],portfolioSummary:null};
 
 const $=id=>document.getElementById(id);
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
@@ -22,12 +22,15 @@ async function refresh(){
   for(let i=0;i<LEAGUE_IDS.length;i++){
    const id=LEAGUE_IDS[i];progress(15+Math.round(i/LEAGUE_IDS.length*75),`Importing league ${i+1} of ${LEAGUE_IDS.length}…`);
    const [league,users,rosters,traded]=await Promise.all([get(`${SLEEPER}/league/${id}`),get(`${SLEEPER}/league/${id}/users`),get(`${SLEEPER}/league/${id}/rosters`),get(`${SLEEPER}/league/${id}/traded_picks`)]);
-   state.leagues.push(analyzeLeague({league,users,rosters,traded}));
+   const analyzed=analyzeLeague({league,users,rosters,traded});
+   analyzed.portfolio=PortfolioEngine.buildLeaguePortfolio({league:analyzed.league,teams:analyzed.teams,tradedPicks:traded,currentUserId:state.userId,currentYear:+league.season||new Date().getFullYear()});
+   state.leagues.push(analyzed);
   }
+  state.portfolioSummary=PortfolioEngine.buildCrossLeagueSummary(state.leagues.map(l=>l.portfolio));
   progress(91,"Analyzing historical drafts and manager tendencies…");
   state.draftHistory=await loadDraftHistory(state.leagues);
   state.managerProfiles=buildManagerProfiles(state.draftHistory,state.leagues);
-  localStorage.setItem(CACHE_KEY,JSON.stringify({saved:Date.now(),leagues:state.leagues,valueDate:state.valueDate,managerProfiles:state.managerProfiles,draftHistory:state.draftHistory}));
+  localStorage.setItem(CACHE_KEY,JSON.stringify({saved:Date.now(),leagues:state.leagues,valueDate:state.valueDate,managerProfiles:state.managerProfiles,draftHistory:state.draftHistory,portfolioSummary:state.portfolioSummary}));
   progress(100,"Refresh complete.");
   $("lastUpdated").textContent=`Updated ${new Date().toLocaleString()} · values ${state.valueDate||"current"}`;
   renderSummary(); populateFilter(); renderManagerProfiles();
@@ -147,15 +150,38 @@ function buildTrades(teams,me,sf){
 }
 function cls(s){return s.startsWith("Elite")?"elite":s==="Contender"?"contender":s.startsWith("Fringe")?"fringe":"retool"}
 function action(l){if(l.status==="Elite contender")return"Consolidate for stars";if(l.status==="Contender")return"Buy one impact starter";if(l.status.startsWith("Fringe"))return"Choose a direction";return"Sell aging production"}
+function pickInventoryLabel(portfolio){
+ if(!portfolio?.picks?.picks?.length)return "No future picks";
+ const firsts=portfolio.picks.picks.filter(p=>p.round===1).length;
+ const seconds=portfolio.picks.picks.filter(p=>p.round===2).length;
+ return `${firsts} 1st${firsts===1?"":"s"} · ${seconds} 2nd${seconds===1?"":"s"}`;
+}
+function pct1(value){return `${(100*(value||0)).toFixed(1)}%`}
+function renderLeaguePortfolio(portfolio){
+ if(!portfolio?.rosterFound){$("portfolioPanel").innerHTML="<h3>League portfolio</h3><p>Your roster could not be identified.</p>";return}
+ const posCounts=Object.fromEntries(portfolio.playerSummary.positionCounts.map(x=>[x.key,x.value]));
+ const positionText=["QB","RB","WR","TE"].map(pos=>`${pos}: ${posCounts[pos]||0}`).join(" · ");
+ const matrix=portfolio.picks.matrix||[];
+ const rounds=portfolio.picks.rounds||[];
+ const header=rounds.map(round=>`<th>${round}${round===1?"st":round===2?"nd":round===3?"rd":"th"}</th>`).join("");
+ const rows=matrix.map(year=>`<tr><th>${year.season}</th>${year.rounds.map(cell=>`<td><button class="pick-cell" data-season="${year.season}" data-round="${cell.round}" ${cell.total?"":"disabled"}>${cell.total} (${cell.original})</button></td>`).join("")}</tr>`).join("");
+ $("portfolioPanel").innerHTML=`<h3>League portfolio</h3><div class="portfolio-metrics"><div><span>Roster assets</span><b>${portfolio.playerSummary.count}</b></div><div><span>Average age</span><b>${portfolio.playerSummary.averageAge==null?"—":portfolio.playerSummary.averageAge.toFixed(1)}</b></div><div><span>Top-3 value concentration</span><b>${pct1(portfolio.playerSummary.top3ValueShare)}</b></div><div><span>Position count</span><b class="compact-value">${positionText}</b></div></div><h4>Draft capital</h4><p class="small">Each cell shows total picks owned, with your original picks in parentheses.</p><div class="pick-table-wrap"><table class="pick-table"><thead><tr><th>Year</th>${header}</tr></thead><tbody>${rows}</tbody></table></div><div id="pickDetails" class="pick-details"><span class="small">Select a non-zero cell to see the original owners.</span></div>${portfolio.warnings.length?`<details class="portfolio-warnings"><summary>Data notes (${portfolio.warnings.length})</summary><ul>${portfolio.warnings.map(w=>`<li>${w}</li>`).join("")}</ul></details>`:""}`;
+ document.querySelectorAll(".pick-cell:not([disabled])").forEach(button=>button.onclick=()=>{
+   const season=+button.dataset.season,round=+button.dataset.round;
+   const cell=portfolio.picks.matrix.find(y=>y.season===season)?.rounds.find(r=>r.round===round);
+   $("pickDetails").innerHTML=`<h4>${season} Round ${round}</h4><table class="pick-detail-table"><thead><tr><th>Pick</th><th>Original owner</th></tr></thead><tbody>${cell.picks.map((pick,index)=>`<tr><td>${season} Round ${round}${cell.picks.length>1?` #${index+1}`:""}</td><td>${pick.isOriginal?"You":pick.originalOwnerName}</td></tr>`).join("")}</tbody></table>`;
+ });
+}
 function renderSummary(){
  const filter=$("leagueFilter").value||"all";const list=state.leagues.filter(l=>filter==="all"||l.league.league_id===filter);
- $("summaryBody").innerHTML=list.map(l=>`<tr data-id="${l.league.league_id}"><td><b>${l.league.name}</b><div class="small">${l.sf?"Superflex":"1QB"} · ${l.teams.length} teams</div></td><td><span class="badge ${cls(l.status)}">${l.status}</span></td><td class="score">${l.me?.rank||"—"}/${l.teams.length}</td><td>${fmt(l.me?.core)}</td><td>${fmt(l.me?.depth)}</td><td>${fmt(l.me?.picks)}</td><td>${action(l)}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">No leagues found.</td></tr>`;
+ $("summaryBody").innerHTML=list.map(l=>`<tr data-id="${l.league.league_id}"><td><b>${l.league.name}</b><div class="small">${l.sf?"Superflex":"1QB"} · ${l.teams.length} teams</div></td><td><span class="badge ${cls(l.status)}">${l.status}</span></td><td class="score">${l.me?.rank||"—"}/${l.teams.length}</td><td>${fmt(l.me?.core)}</td><td>${fmt(l.me?.depth)}</td><td>${pickInventoryLabel(l.portfolio)}</td><td>${action(l)}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">No leagues found.</td></tr>`;
  document.querySelectorAll("#summaryBody tr[data-id]").forEach(r=>r.onclick=()=>showLeague(r.dataset.id))
 }
 function populateFilter(){const f=$("leagueFilter");const cur=f.value;f.innerHTML='<option value="all">All leagues</option>'+state.leagues.map(l=>`<option value="${l.league.league_id}">${l.league.name}</option>`).join("");f.value=cur&&[...f.options].some(o=>o.value===cur)?cur:"all"}
 function showLeague(id){
  const l=state.leagues.find(x=>x.league.league_id===id);if(!l)return;$("detailSection").classList.remove("hidden");$("detailTitle").textContent=l.league.name;
- $("leagueCards").innerHTML=[["Contender status",l.status],["Power rank",`${l.me.rank} of ${l.teams.length}`],["Roster value",fmt(l.me.core+l.me.depth)],["Future picks",fmt(l.me.picks)]].map(x=>`<div class="metric"><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");
+ $("leagueCards").innerHTML=[["Contender status",l.status],["Power rank",`${l.me.rank} of ${l.teams.length}`],["Roster value",fmt(l.me.core+l.me.depth)],["Draft capital",pickInventoryLabel(l.portfolio)]].map(x=>`<div class="metric"><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");
+ renderLeaguePortfolio(l.portfolio);
  const groups={QB:[],RB:[],WR:[],TE:[],OTHER:[]};l.me.players.forEach(p=>(groups[p.pos]||groups.OTHER).push(p));
  $("myRoster").innerHTML=Object.entries(groups).filter(([,v])=>v.length).map(([pos,ps])=>`<div class="position"><h4>${pos}</h4>${ps.slice(0,12).map(p=>`<div class="player"><span>${p.name}<small> ${p.team||""}${p.age?" · "+p.age:""}</small></span><span>${fmt(p.value)}</span></div>`).join("")}</div>`).join("");
  $("tradeIdeas").innerHTML=l.trades.length?l.trades.map((t,i)=>`<div class="trade"><strong>${i+1}. Send to ${t.opp}</strong><div>You get: ${t.get.map(p=>p.name).join(" + ")}</div><div>You give: ${t.give.map(p=>p.name).join(" + ")}</div><p>${t.reason} Market difference: ${t.delta>=0?"+":""}${fmt(t.delta)} from your side.</p></div>`).join(""):"<p>No clean value-matched offers found.</p>";
@@ -164,8 +190,8 @@ function showLeague(id){
 }
 function exportData(){const b=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),username:USERNAME,leagues:state.leagues,managerProfiles:state.managerProfiles,draftHistory:state.draftHistory},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="joesoares-dynasty-command-center.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $("refreshBtn").onclick=refresh;$("exportBtn").onclick=exportData;$("leagueFilter").onchange=renderSummary;$("strategy").onchange=()=>{if(state.leagues.length)renderSummary()};
-const CACHE_KEY="project-leverage-cache-v1";
-const cached=localStorage.getItem(CACHE_KEY);if(cached){try{const c=JSON.parse(cached);state.leagues=c.leagues||[];state.valueDate=c.valueDate;state.managerProfiles=c.managerProfiles||[];state.draftHistory=c.draftHistory||[];if(state.leagues.length){renderSummary();populateFilter();renderManagerProfiles();$("statusText").textContent="Showing your most recent saved refresh.";$("lastUpdated").textContent="Saved "+new Date(c.saved).toLocaleString()}}catch{}}
+const CACHE_KEY="project-leverage-cache-v2";
+const cached=localStorage.getItem(CACHE_KEY);if(cached){try{const c=JSON.parse(cached);state.leagues=c.leagues||[];state.valueDate=c.valueDate;state.managerProfiles=c.managerProfiles||[];state.draftHistory=c.draftHistory||[];state.portfolioSummary=c.portfolioSummary||PortfolioEngine.buildCrossLeagueSummary(state.leagues.map(l=>l.portfolio).filter(Boolean));if(state.leagues.length){renderSummary();populateFilter();renderManagerProfiles();$("statusText").textContent="Showing your most recent saved refresh.";$("lastUpdated").textContent="Saved "+new Date(c.saved).toLocaleString()}}catch{}}
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
 
 // --- Dynasty Lab: PL-001 AnyRBOnA53 weekly utility study ---

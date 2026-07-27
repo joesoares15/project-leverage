@@ -29,3 +29,22 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute
 
 .lab-controls{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:12px;align-items:end}.lab-controls label{font-size:12px;font-weight:700;color:var(--muted)}.lab-button{margin:0;width:auto}.lab-status{margin:16px 0;padding:12px;border-radius:10px;background:#f2f4f7;color:var(--muted)}.lab-table{width:100%;min-width:0}.lab-table th,.lab-table td{padding:9px 7px;font-size:13px}.inset{background:#f9fafb;box-shadow:none;margin-top:14px}.method{color:var(--muted);font-size:13px;line-height:1.6;margin-top:10px}details{margin-top:12px}summary{cursor:pointer;font-weight:700}.delta-good{color:var(--good);font-weight:800}.delta-warn{color:var(--warn);font-weight:800}
 @media(max-width:900px){.lab-controls{grid-template-columns:1fr 1fr}.lab-button{grid-column:1/-1;width:100%}}
+
+/* League-first portfolio engine */
+.portfolio-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.portfolio-metrics>div{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fcfcfd}
+.portfolio-metrics span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.portfolio-metrics b{font-size:20px}
+.portfolio-metrics .compact-value{font-size:13px;line-height:1.45}
+.pick-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.pick-table{min-width:520px}
+.pick-table th,.pick-table td{text-align:center}
+.pick-cell{width:100%;border:0;border-radius:8px;padding:9px;background:#eaf2ff;color:#1849a9;font-weight:800;cursor:pointer}
+.pick-cell:hover{background:#dbe9ff}
+.pick-cell:disabled{background:#f2f4f7;color:#98a2b3;cursor:default}
+.pick-details{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fcfcfd}
+.pick-details h4{margin:0 0 8px}
+.pick-detail-table{min-width:0}
+.portfolio-warnings{margin-top:12px;color:var(--muted)}
+.portfolio-warnings ul{margin-bottom:0}
+@media(max-width:760px){.portfolio-metrics{grid-template-columns:1fr 1fr}}
